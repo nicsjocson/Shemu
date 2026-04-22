@@ -1,0 +1,40 @@
+{% extends 'payroll_app/base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card card-body">
+            <h4>Payroll Creation Form</h4>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary w-100">Submit Payroll</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <h4>Payslips Summary</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID Number</th>
+                    <th>Date</th>
+                    <th>Cycle</th>
+                    <th>Total Pay</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slip in payslips %}
+                <tr>
+                    <td>{{ slip.getIDNumber }}</td>
+                    <td>{{ slip.getMonth }} {{ slip.getDate_range }}, {{ slip.getYear }}</td>
+                    <td>{{ slip.getPay_cycle }}</td>
+                    <td>₱{{ slip.getTotal_pay|floatformat:2 }}</td>
+                    <td><a href="{% url 'view_payslip' slip.pk %}" class="btn btn-sm btn-info">View Payslip</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

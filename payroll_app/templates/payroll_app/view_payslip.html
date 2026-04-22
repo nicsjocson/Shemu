@@ -1,0 +1,43 @@
+{% extends 'payroll_app/base.html' %}
+{% block content %}
+<div class="card mx-auto" style="max-width: 600px;">
+    <div class="card-header text-center">
+        <h4>Shemu Payslip</h4>
+    </div>
+    <div class="card-body">
+        <div class="mb-4">
+            <strong>Name:</strong> {{ payslip.id_number.getName }}<br>
+            <strong>ID Number:</strong> {{ payslip.getIDNumber }}<br>
+            <strong>Date:</strong> {{ payslip.getMonth }} {{ payslip.getDate_range }}, {{ payslip.getYear }}<br>
+            <strong>Payslip PK:</strong> {{ payslip.pk }}
+        </div>
+
+        <h5 class="border-bottom pb-1">Earnings</h5>
+        <table class="table table-sm table-borderless">
+            <tr><td>Cycle Rate</td><td class="text-end">₱{{ payslip.getCycleRate|floatformat:2 }}</td></tr>
+            <tr><td>Allowance</td><td class="text-end">₱{{ payslip.getEarnings_allowance|floatformat:2 }}</td></tr>
+            <tr><td>Overtime</td><td class="text-end">₱{{ payslip.getOvertime|floatformat:2 }}</td></tr>
+        </table>
+
+        <h5 class="border-bottom pb-1 mt-4">Deductions</h5>
+        <table class="table table-sm table-borderless">
+            <tr><td>Tax (20%)</td><td class="text-end">₱{{ payslip.getDeductions_tax|floatformat:2 }}</td></tr>
+            
+            {% if payslip.getPay_cycle == 1 %}
+                <tr><td>Pag-Ibig</td><td class="text-end">₱{{ payslip.getPag_ibig|floatformat:2 }}</td></tr>
+            {% else %}
+                <tr><td>Philhealth (4%)</td><td class="text-end">₱{{ payslip.getDeductions_health|floatformat:2 }}</td></tr>
+                <tr><td>SSS (4.5%)</td><td class="text-end">₱{{ payslip.getSSS|floatformat:2 }}</td></tr>
+            {% endif %}
+        </table>
+
+        <h4 class="border-top pt-2 mt-4 d-flex justify-content-between">
+            <span>Net Pay:</span>
+            <strong>₱{{ payslip.getTotal_pay|floatformat:2 }}</strong>
+        </h4>
+    </div>
+    <div class="card-footer text-center">
+        <a href="{% url 'payslips' %}" class="btn btn-secondary">Back to Payslips</a>
+    </div>
+</div>
+{% endblock %}

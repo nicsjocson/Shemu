@@ -1,0 +1,44 @@
+{% extends 'payroll_app/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+    <h2>Employees</h2>
+    <a href="{% url 'create_employee' %}" class="btn btn-primary">New Employee</a>
+</div>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>ID Number</th>
+            <th>Rate</th>
+            <th>Allowance</th>
+            <th>Overtime Pay</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for emp in employees %}
+        <tr>
+            <td>{{ emp.getName }}</td>
+            <td>{{ emp.getID }}</td>
+            <td>₱{{ emp.getRate }}</td>
+            <td>₱{{ emp.getAllowance }}</td>
+            <td>₱{{ emp.getOvertime|floatformat:2 }}</td>
+            <td>
+                <a href="{% url 'update_employee' emp.getID %}" class="btn btn-sm btn-secondary">Update</a>
+                <form method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="emp_id" value="{{ emp.getID }}">
+                    <button type="submit" name="delete_employee" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+                <form method="POST" class="d-inline-flex ms-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="emp_id" value="{{ emp.getID }}">
+                    <input type="number" name="hours" class="form-control form-control-sm w-50" placeholder="Hrs" required step="0.1">
+                    <button type="submit" name="add_overtime" class="btn btn-sm btn-success ms-1">+ OT</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
