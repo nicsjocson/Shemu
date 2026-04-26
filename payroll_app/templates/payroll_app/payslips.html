@@ -1,36 +1,90 @@
 {% extends 'payroll_app/base.html' %}
+
 {% block content %}
 <div class="row">
-    <div class="col-md-4">
-        <div class="card card-body">
-            <h4>Payroll Creation Form</h4>
-            <form method="POST">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-primary w-100">Submit Payroll</button>
-            </form>
-        </div>
-    </div>
-    <div class="col-md-8">
-        <h4>Payslips Summary</h4>
-        <table class="table table-striped">
-            <thead>
+    <div class="col-md-12">
+        <h2 class="mb-4">Payroll Creation</h2>
+
+        {% if error_messages %}
+            {% for error in error_messages %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'payslips' %}">
+            {% csrf_token %}
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Payroll for:</label>
+                    <select name="payroll_for" class="form-select">
+                        <option value="" disabled selected>Choose...</option>
+                        <option value="all">All Employees</option>
+                        {% for employee in employees %}
+                            <option value="{{ employee.id_number }}">{{ employee.id_number }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Month:</label>
+                    <select name="month" class="form-select">
+                        <option value="" disabled selected>Choose...</option>
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Year:</label>
+                    <input type="text" name="year" class="form-control" placeholder="e.g. 2026" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Cycle:</label>
+                    <select name="cycle" class="form-select">
+                        <option value="" disabled selected>Choose...</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </form>
+
+        <h2 class="mb-3 mt-4">Payslips Summary</h2>
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
                 <tr>
                     <th>ID Number</th>
                     <th>Date</th>
                     <th>Cycle</th>
                     <th>Total Pay</th>
-                    <th>Action</th>
+                    <th>Options</th>
                 </tr>
             </thead>
             <tbody>
-                {% for slip in payslips %}
+                {% for payslip in payslips %}
                 <tr>
-                    <td>{{ slip.getIDNumber }}</td>
-                    <td>{{ slip.getMonth }} {{ slip.getDate_range }}, {{ slip.getYear }}</td>
-                    <td>{{ slip.getPay_cycle }}</td>
-                    <td>₱{{ slip.getTotal_pay|floatformat:2 }}</td>
-                    <td><a href="{% url 'view_payslip' slip.pk %}" class="btn btn-sm btn-info">View Payslip</a></td>
+                    <td>{{ payslip.id_number.id_number }}</td>
+                    <td>{{ payslip.month }} {{ payslip.date_range }}, {{ payslip.year }}</td>
+                    <td>{{ payslip.pay_cycle }}</td>
+                    <td>{{ payslip.total_pay }}</td>
+                    <td>
+                        <a href="{% url 'view_payslip' payslip.pk %}" class="btn btn-primary btn-sm">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No payslips found.</td>
                 </tr>
                 {% endfor %}
             </tbody>

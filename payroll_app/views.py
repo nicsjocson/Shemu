@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Employee, Payslip
-from .forms import EmployeeForm, PayrollForm
 
 def home(request):
     employees = Employee.objects.all()
-    if request.method == 'POST':
+    '''if request.method == 'POST':
         if 'add_overtime' in request.POST:
             emp_id = request.POST.get('emp_id')
             hours = float(request.POST.get('hours', 0))
@@ -19,66 +18,118 @@ def home(request):
             emp_id = request.POST.get('emp_id')
             emp = get_object_or_404(Employee, id_number=emp_id)
             emp.delete()
-            return redirect('home')
-
+            return redirect('home')'''
     return render(request, 'payroll_app/home.html', {'employees': employees})
 
+def delete_employee(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    employee.delete()
+    return redirect('home')
+
+def add_overtime(request, pk):  
+    if request.method == 'POST':
+        employee = get_object_or_404(Employee, pk=pk)
+        hours = float(request.POST.get('overtime_hours', 0))
+        overtime = (employee.rate/160) * 1.5 * hours
+
+        if employee.overtime_pay is None: 
+            employee.overtime_pay = 0
+        employee.overtime_pay += overtime
+        employee.save()
+    return redirect('home')
+
 def create_employee(request):
-    form = EmployeeForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        return redirect('home')
-    return render(request, 'payroll_app/employee_form.html', {'form': form, 'action': 'Create'})
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        id_number = request.POST.get('id_number')
+        rate = request.POST.get('rate')
+        allowance = request.POST.get('allowance') or None
 
-def update_employee(request, id_number):
-    emp = get_object_or_404(Employee, id_number=id_number)
-    form = EmployeeForm(request.POST or None, instance=emp)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
+        Employee.objects.create(
+            name=name,
+            id_number=id_number,
+            rate=rate,
+            allowance=allowance
+        )
         return redirect('home')
-    return render(request, 'payroll_app/employee_form.html', {'form': form, 'action': 'Update'})
+    return render(request, 'payroll_app/create_employee.html')
 
+def update_employee(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    if request.method == 'POST':
+        employee.name = request.POST.get('name')
+        employee.id_number = request.POST.get('id_number')
+        employee.rate = request.POST.get('rate')
+        employee.allowance = request.POST.get('allowance') or None
+        employee.save()
+        return redirect('home')
+    else:
+        return render(request, 'payroll_app/update_employee.html', {'employee': employee})
+    
 def payslips(request):
-    payslips_list = Payslip.objects.all()
-    form = PayrollForm(request.POST or None)
+    employees = Employee.objects.all()
+    payslips = Payslip.objects.all()
+    error_messages = []
 
-    if request.method == 'POST' and form.is_valid():
-        payroll_for = form.cleaned_data['payroll_for']
-        month = form.cleaned_data['month']
-        year = form.cleaned_data['year']
-        cycle = int(form.cleaned_data['cycle'])
+    if request.method == 'POST':
+        payroll_for = request.POST.get('payroll_for')
+        if not payroll_for: 
+            messages.error(request, 'Please select an Employee or All Employees.')
+            return render(request, 'payroll_app/payslips.html', {'employees': employees, 'payslips': payslips, 'error_messages': error_messages})
+        
+        month = request.POST.get('month')
+        if not month: 
+            messages.error(request, 'Please select a month.')
+            return render(request, 'payroll_app/payslips.html', {'employees': employees, 'payslips': payslips, 'error_messages': error_messages})
+        
+        year = request.POST.get('year')
 
-        employees = Employee.objects.all() if payroll_for == 'All' else Employee.objects.filter(id_number=payroll_for)
-        date_range = "1-15" if cycle == 1 else "16-End"
+        cycle = request.POST.get('cycle')
+        if not cycle:
+            messages.error(request, 'Please select a cycle.')
+            return render(request, 'payroll_app/payslips.html', {'employees': employees, 'payslips': payslips, 'error_messages': error_messages})
+        cycle = int(cycle)
+    
+        if cycle == 1:
+            date_range = '1-15'
+        else:
+            date_range = '16-30'
 
-        for emp in employees:
-            if Payslip.objects.filter(id_number=emp, month=month, year=year, pay_cycle=cycle).exists():
-                messages.error(request, f"Error: Payslip already exists for {emp.getName()} ({month} {year}, Cycle {cycle}).")
+        if payroll_for == 'all':
+            selected_employees = Employee.objects.all()
+        else: 
+            selected_employees = Employee.objects.filter(id_number=payroll_for)
+
+        for employee in selected_employees:
+            existing = Payslip.objects.filter(id_number=employee, month=month, year=year, pay_cycle=cycle).exists()
+            if existing:
+                error_messages.append(f'Payslip for {employee.id_number} ({month} {year} Cycle {cycle}) already exists.')
                 continue
 
-            cycle_rate = emp.getRate() / 2
-            allowance = emp.getAllowance()
-            overtime = emp.getOvertime()
-            gross_pay = cycle_rate + allowance + overtime
+            rate = employee.rate
+            allowance = employee.allowance or 0
+            overtime = employee.overtime_pay or 0
 
-            tax = gross_pay * 0.20
-            pag_ibig = 100.0 if cycle == 1 else 0.0
-            health = emp.getRate() * 0.04 if cycle == 2 else 0.0
-            sss = emp.getRate() * 0.045 if cycle == 2 else 0.0
-
-            deductions = tax + pag_ibig + health + sss
-            total_pay = gross_pay - deductions
-
-            Payslip.objects.create(
-                id_number=emp, month=month, date_range=date_range, year=year, pay_cycle=cycle,
-                rate=emp.getRate(), earnings_allowance=allowance, deductions_tax=tax,
-                deductions_health=health, pag_ibig=pag_ibig, sss=sss,
-                overtime=overtime, total_pay=total_pay
-            )
-            emp.resetOvertime() # Reset OT to 0 after generation
-        return redirect('payslips')
-
-    return render(request, 'payroll_app/payslips.html', {'form': form, 'payslips': payslips_list})
+            if cycle == 1:
+                pag_ibig = 100
+                philhealth = 0
+                sss = 0
+                tax = ((rate / 2) + allowance + overtime - pag_ibig) * 0.2
+                total_pay = ((rate / 2) + allowance + overtime - pag_ibig) - tax
+            else:
+                pag_ibig = 0
+                philhealth = rate * 0.04
+                sss = rate * 0.045
+                tax = ((rate / 2) + allowance + overtime - philhealth - sss) * 0.2
+                total_pay = ((rate / 2) + allowance + overtime - philhealth - sss) - tax
+        
+            Payslip.objects.create(id_number=employee, month=month, date_range=date_range, year=year, pay_cycle=cycle, rate=rate, 
+                               earnings_allowance=allowance, deductions_tax=tax, deductions_health=philhealth, pag_ibig=pag_ibig, 
+                               sss=sss, overtime=overtime, total_pay=total_pay)
+        
+        employee.resetOvertime()
+    payslips = Payslip.objects.all()
+    return render(request, 'payroll_app/payslips.html', {'employees': employees, 'payslips': payslips, 'error_messages': error_messages,})
 
 def view_payslip(request, pk):
     payslip = get_object_or_404(Payslip, pk=pk)

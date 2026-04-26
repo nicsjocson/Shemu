@@ -1,42 +1,43 @@
 {% extends 'payroll_app/base.html' %}
+
 {% block content %}
-<div class="d-flex justify-content-between mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Employees</h2>
-    <a href="{% url 'create_employee' %}" class="btn btn-primary">New Employee</a>
+    <a href="{% url 'create_employee' %}" class="btn btn-primary">+ New Employee</a>
 </div>
-<table class="table table-bordered">
-    <thead>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
         <tr>
             <th>Name</th>
             <th>ID Number</th>
             <th>Rate</th>
             <th>Allowance</th>
-            <th>Overtime Pay</th>
-            <th>Actions</th>
+            <th>Overtime</th>
+            <th>Options</th>
         </tr>
     </thead>
     <tbody>
-        {% for emp in employees %}
+        {% for employee in employees %}
         <tr>
-            <td>{{ emp.getName }}</td>
-            <td>{{ emp.getID }}</td>
-            <td>₱{{ emp.getRate }}</td>
-            <td>₱{{ emp.getAllowance }}</td>
-            <td>₱{{ emp.getOvertime|floatformat:2 }}</td>
-            <td>
-                <a href="{% url 'update_employee' emp.getID %}" class="btn btn-sm btn-secondary">Update</a>
-                <form method="POST" style="display:inline;">
+            <td>{{ employee.name }}</td>
+            <td>{{ employee.id_number }}</td>
+            <td>{{ employee.rate }}</td>
+            <td>{{ employee.allowance|default:"0" }}</td>
+            <td>{{ employee.overtime_pay|default:"0" }}</td>
+            <td class="text-nowrap" style="width: 1%;">
+                <form method="POST" action="{% url 'add_overtime' employee.pk %}" class="d-inline">
                     {% csrf_token %}
-                    <input type="hidden" name="emp_id" value="{{ emp.getID }}">
-                    <button type="submit" name="delete_employee" class="btn btn-sm btn-danger">Delete</button>
+                    <input type="number" name="overtime_hours" class="form-control form-control-sm d-inline" style="width: 100px;" placeholder="Hours" min="0" step="1">
+                    <button type="submit" class="btn btn-success btn-sm">Add Overtime</button>
                 </form>
-                <form method="POST" class="d-inline-flex ms-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="emp_id" value="{{ emp.getID }}">
-                    <input type="number" name="hours" class="form-control form-control-sm w-50" placeholder="Hrs" required step="0.1">
-                    <button type="submit" name="add_overtime" class="btn btn-sm btn-success ms-1">+ OT</button>
-                </form>
+                <a href="{% url 'update_employee' employee.pk %}" class="btn btn-warning btn-sm">Update</a>
+                <a href="{% url 'delete_employee' employee.pk %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete {{ employee.name }}?')">Delete</a>
             </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="text-center">No employees found.</td>
         </tr>
         {% endfor %}
     </tbody>
