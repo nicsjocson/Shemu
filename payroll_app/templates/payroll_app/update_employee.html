@@ -4,23 +4,33 @@
 <div class="row justify-content-center">
     <div class="col-md-6">
         <h2 class="mb-4">Update Employee</h2>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
         <form method="POST" action="{% url 'update_employee' employee.pk %}">
             {% csrf_token %}
             <div class="mb-3">
                 <label class="form-label fw-bold">Name:</label>
-                <input type="text" class="form-control" name="name" value="{{ employee.name }}" required>
+                <input type="text" name="name" id="name" class="form-control" value="{{ employee.name }}" pattern="[a-zA-Z\s]+" title="Only letters and spaces are allowed" required>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">ID Number:</label>
-                <input type="text" class="form-control" name="id_number" value="{{ employee.id_number }}" required>
+                <input type="text" name="id_number" class="form-control" value="{{ employee.id_number }}" pattern="[0-9]+" title="ID Number must contain numbers only and must be positive" required>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Rate:</label>
-                <input type="number" name="rate" id="rate" min="0.01" step="any" required>
+                <label for="rate" class="fw-bold">Rate:</label>
+                <input type="number" name="rate" id="rate" class="form-control" value="{{ employee.rate }}" min="0.01" step="any" title="Rate must be greater than 0" required>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Allowance (Optional):</label>
-                <input type="number" class="form-control" name="allowance" value="{{ employee.allowance }}" step="0.01">
+                <input type="number" class="form-control" name="allowance" value="{{ employee.allowance }}" min="0" step="0.01" title="Allowance must be 0 or greater">
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>

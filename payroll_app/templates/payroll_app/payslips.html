@@ -3,11 +3,23 @@
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <h2 class="mb-4">Payroll Creation</h2>
+        <h2 class="mb-4">Payslips</h2>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
 
         {% if error_messages %}
             {% for error in error_messages %}
-                <div class="alert alert-danger">{{ error }}</div>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             {% endfor %}
         {% endif %}
 
@@ -16,8 +28,8 @@
             <div class="row mb-3">
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Payroll for:</label>
-                    <select name="payroll_for" class="form-select">
-                        <option value="" disabled selected>Choose...</option>
+                    <select name="payroll_for" class="form-select" required>
+                        <option value="">Choose...</option>
                         <option value="all">All Employees</option>
                         {% for employee in employees %}
                             <option value="{{ employee.id_number }}">{{ employee.id_number }}</option>
@@ -26,8 +38,8 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold">Month:</label>
-                    <select name="month" class="form-select">
-                        <option value="" disabled selected>Choose...</option>
+                    <select name="month" class="form-select" required>
+                        <option value="">Choose...</option>
                         <option value="January">January</option>
                         <option value="February">February</option>
                         <option value="March">March</option>
@@ -43,13 +55,13 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label fw-bold">Year:</label>
-                    <input type="number" name="year" id="year" min="1900" max="2099" required>
+                    <label for="year" class="form-label fw-bold">Year:</label>
+                    <input type="number" name="year" id="year" class="form-control" min="1900" max="2099" required>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-bold">Cycle:</label>
-                    <select name="cycle" class="form-select">
-                        <option value="" disabled selected>Choose...</option>
+                    <select name="cycle" class="form-select" required>
+                        <option value="">Choose...</option>
                         <option value="1">1</option>
                         <option value="2">2</option>
                     </select>
@@ -61,6 +73,27 @@
         </form>
 
         <h2 class="mb-3 mt-4">Payslips Summary</h2>
+
+        <div class="mb-3 d-flex gap-3 align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <label class="fw-bold mb-0">Filter by Employee:</label>
+                <select class="form-select form-select-sm" style="width: 150px;" onchange="window.location.href='?cycle_filter={{ cycle_filter }}&employee_filter=' + this.value">
+                    <option value="all" {% if employee_filter == 'all' or not employee_filter %}selected{% endif %}>All</option>
+                    {% for employee in employees %}
+                        <option value="{{ employee.id_number }}" {% if employee_filter == employee.id_number %}selected{% endif %}>{{ employee.id_number }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <label class="fw-bold mb-0">Filter by Cycle:</label>
+                <select class="form-select form-select-sm" style="width: 120px;" onchange="window.location.href='?cycle_filter=' + this.value + '&employee_filter={{ employee_filter }}'">
+                    <option value="all" {% if cycle_filter == 'all' or not cycle_filter %}selected{% endif %}>All</option>
+                    <option value="1" {% if cycle_filter == '1' %}selected{% endif %}>Cycle 1</option>
+                    <option value="2" {% if cycle_filter == '2' %}selected{% endif %}>Cycle 2</option>
+                </select>
+            </div>
+        </div>
+
         <table class="table table-bordered table-hover">
             <thead class="table-dark">
                 <tr>
@@ -74,10 +107,10 @@
             <tbody>
                 {% for payslip in payslips %}
                 <tr>
-                    <td>{{ payslip.id_number.id_number }}</td>
-                    <td>{{ payslip.month }} {{ payslip.date_range }}, {{ payslip.year }}</td>
-                    <td>{{ payslip.pay_cycle }}</td>
-                    <td>{{ payslip.total_pay }}</td>
+                    <td>{{ payslip.getIDNumber }}</td>
+                    <td>{{ payslip.getMonth }} {{ payslip.getDate_range }}, {{ payslip.getYear }}</td>
+                    <td>{{ payslip.getPay_cycle }}</td>
+                    <td>₱{{ payslip.getTotal_pay|floatformat:2 }}</td>
                     <td>
                         <a href="{% url 'view_payslip' payslip.pk %}" class="btn btn-primary btn-sm">View</a>
                     </td>
