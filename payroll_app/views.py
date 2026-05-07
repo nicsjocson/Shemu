@@ -42,17 +42,24 @@ def create_employee(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         id_number = request.POST.get('id_number')
-        rate = request.POST.get('rate')
+        
+        # i need to get the rate and check if it is greater than zero
+        rate_input = float(request.POST.get('rate'))
+        if rate_input <= 0:
+            messages.error(request, 'Rate must be greater than 0.')
+            return redirect('create_employee')
+            
         allowance = request.POST.get('allowance') or None
 
         if Employee.objects.filter(id_number=id_number).exists():
             messages.error(request, 'An employee with this ID number already exists.')
             return redirect('create_employee')
 
+        # i create the new employee using the validated rate
         Employee.objects.create(
             name=name,
             id_number=id_number,
-            rate=rate,
+            rate=rate_input,
             allowance=allowance
         )
         return redirect('home')
@@ -63,8 +70,16 @@ def update_employee(request, pk):
     if request.method == 'POST':
         employee.name = request.POST.get('name')
         employee.id_number = request.POST.get('id_number')
-        employee.rate = request.POST.get('rate')
+        
+        # i will check if the inputted rate is valid before saving
+        rate_input = float(request.POST.get('rate'))
+        if rate_input <= 0:
+            messages.error(request, 'Rate must be greater than 0.')
+            return render(request, 'payroll_app/update_employee.html', {'employee': employee})
+            
+        employee.rate = rate_input
         employee.allowance = request.POST.get('allowance') or None
+        
         employee.save()
         return redirect('home')
     else:
@@ -116,7 +131,8 @@ def payslips(request):
         for employee in selected_employees:
             existing = Payslip.objects.filter(id_number=employee, month=month, year=year, pay_cycle=cycle).exists()
             if existing:
-                error_messages.append(f'Payslip for {employee.id_number} ({month} {year} Cycle {cycle}) already exists.')
+                # i am using format() here so it follows my preferred style
+                error_messages.append('Payslip for {} ({} {} Cycle {}) already exists.'.format(employee.id_number, month, year, cycle))
                 continue
 
             rate = employee.rate
@@ -140,7 +156,7 @@ def payslips(request):
                                earnings_allowance=allowance, deductions_tax=tax, deductions_health=philhealth, pag_ibig=pag_ibig, 
                                sss=sss, overtime=overtime, total_pay=total_pay)
         
-        employee.resetOvertime()
+            employee.resetOvertime()
     payslips = Payslip.objects.all()
     return render(request, 'payroll_app/payslips.html', {'employees': employees, 'payslips': payslips, 'error_messages': error_messages,})
 
