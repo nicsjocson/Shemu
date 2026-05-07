@@ -19,7 +19,7 @@
     <div class="container mt-4 flex-grow-1">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-warning">{{ message }}</div>
+                <div class="alert alert-danger">{{ message }}</div>
             {% endfor %}
         {% endif %}
         {% block content %}
