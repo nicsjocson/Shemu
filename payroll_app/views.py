@@ -153,12 +153,13 @@ def payslips(request):
         if not year:
             messages.error(request, 'Please enter a year.')
             return render(request, 'payroll_app/payslips.html', {'employees': employees, 'payslips': payslips, 'error_messages': error_messages, 'cycle_filter': cycle_filter, 'employee_filter': employee_filter})
-            
-        year_input = int(year)
-        if year_input < 1900 or year_input > 2099:
-            messages.error(request, 'Please enter a valid year between 1900 and 2099.')
+        
+        if not year.isdigit() or len(year) != 4:
+            messages.error(request, 'Please enter a valid 4-digit year.')
             return render(request, 'payroll_app/payslips.html', {'employees': employees, 'payslips': payslips, 'error_messages': error_messages, 'cycle_filter': cycle_filter, 'employee_filter': employee_filter})
         
+        year_input = int(year)
+
         cycle = request.POST.get('cycle')
         if not cycle:
             messages.error(request, 'Please select a cycle.')
