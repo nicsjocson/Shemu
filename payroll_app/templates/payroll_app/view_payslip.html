@@ -1,44 +1,156 @@
 {% extends 'payroll_app/base.html' %}
 
 {% block content %}
-<div class="card mx-auto" style="max-width: 600px;">
-    <div class="card-header text-center">
-        <h4>Shemu Payslip</h4>
-    </div>
-    <div class="card-body">
-        <div class="mb-4">
+<style>
+    .payslip-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(255, 150, 170, 0.15);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .payslip-header {
+        background-color: #ffb3c1;
+        color: #6b2737;
+        text-align: center;
+        padding: 20px;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    .payslip-body {
+        padding: 24px;
+    }
+    .payslip-info {
+        background-color: #fff5f7;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 20px;
+        color: #6b2737;
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+    .payslip-info strong {
+        color: #6b2737;
+    }
+    .section-title {
+        color: #6b2737;
+        font-weight: 700;
+        font-size: 1rem;
+        border-bottom: 2px solid #ffb3c1;
+        padding-bottom: 6px;
+        margin-bottom: 8px;
+        margin-top: 20px;
+    }
+    .payslip-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 4px;
+    }
+    .payslip-table td {
+        background-color: #fff5f7;
+        padding: 8px 14px;
+        color: #6b2737;
+        font-size: 0.92rem;
+    }
+    .payslip-table td:first-child { border-radius: 8px 0 0 8px; }
+    .payslip-table td:last-child {
+        border-radius: 0 8px 8px 0;
+        text-align: right;
+        font-weight: 600;
+    }
+    .net-pay-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #ffb3c1;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-top: 20px;
+        color: #6b2737;
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+    .payslip-footer {
+        background-color: #fff5f7;
+        text-align: center;
+        padding: 16px;
+        border-top: 1.5px solid #ffd6e0;
+    }
+    .btn-back {
+        background-color: #ffd6e0;
+        color: #6b2737;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-back:hover {
+        background-color: #ffb3c1;
+        color: #6b2737;
+    }
+</style>
+
+<div class="payslip-card">
+    <div class="payslip-header">Shemu Payslip</div>
+    <div class="payslip-body">
+
+        <div class="payslip-info">
             <strong>Name:</strong> {{ payslip.id_number.getName }}<br>
             <strong>ID Number:</strong> {{ payslip.getIDNumber }}<br>
             <strong>Date:</strong> {{ payslip.getMonth }} {{ payslip.getDate_range }}, {{ payslip.getYear }}<br>
             <strong>Payslip PK:</strong> {{ payslip.pk }}
         </div>
 
-        <h5 class="border-bottom pb-1">Earnings</h5>
-        <table class="table table-sm table-borderless">
-            <tr><td>Cycle Rate</td><td class="text-end">₱{{ payslip.getCycleRate|floatformat:2 }}</td></tr>
-            <tr><td>Allowance</td><td class="text-end">₱{{ payslip.getEarnings_allowance|floatformat:2 }}</td></tr>
-            <tr><td>Overtime</td><td class="text-end">₱{{ payslip.getOvertime|floatformat:2 }}</td></tr>
+        <div class="section-title">Earnings</div>
+        <table class="payslip-table">
+            <tr>
+                <td>Cycle Rate</td>
+                <td>₱{{ payslip.getCycleRate|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td>Allowance</td>
+                <td>₱{{ payslip.getEarnings_allowance|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td>Overtime</td>
+                <td>₱{{ payslip.getOvertime|floatformat:2 }}</td>
+            </tr>
         </table>
 
-        <h5 class="border-bottom pb-1 mt-4">Deductions</h5>
-        <table class="table table-sm table-borderless">
-            <tr><td>Tax (20%)</td><td class="text-end">₱{{ payslip.getDeductions_tax|floatformat:2 }}</td></tr>
-            
+        <div class="section-title">Deductions</div>
+        <table class="payslip-table">
+            <tr>
+                <td>Tax (20%)</td>
+                <td>₱{{ payslip.getDeductions_tax|floatformat:2 }}</td>
+            </tr>
             {% if payslip.getPay_cycle == 1 %}
-                <tr><td>Pag-Ibig</td><td class="text-end">₱{{ payslip.getPag_ibig|floatformat:2 }}</td></tr>
+            <tr>
+                <td>Pag-Ibig</td>
+                <td>₱{{ payslip.getPag_ibig|floatformat:2 }}</td>
+            </tr>
             {% else %}
-                <tr><td>Philhealth (4%)</td><td class="text-end">₱{{ payslip.getDeductions_health|floatformat:2 }}</td></tr>
-                <tr><td>SSS (4.5%)</td><td class="text-end">₱{{ payslip.getSSS|floatformat:2 }}</td></tr>
+            <tr>
+                <td>Philhealth (4%)</td>
+                <td>₱{{ payslip.getDeductions_health|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td>SSS (4.5%)</td>
+                <td>₱{{ payslip.getSSS|floatformat:2 }}</td>
+            </tr>
             {% endif %}
         </table>
 
-        <h4 class="border-top pt-2 mt-4 d-flex justify-content-between">
+        <div class="net-pay-row">
             <span>Net Pay:</span>
-            <strong>₱{{ payslip.getTotal_pay|floatformat:2 }}</strong>
-        </h4>
+            <span>₱{{ payslip.getTotal_pay|floatformat:2 }}</span>
+        </div>
+
     </div>
-    <div class="card-footer text-center">
-        <a href="{% url 'payslips' %}" class="btn btn-secondary">Back to Payslips</a>
+    <div class="payslip-footer">
+        <a href="{% url 'payslips' %}" class="btn-back">Back to Payslips</a>
     </div>
 </div>
 {% endblock %}
