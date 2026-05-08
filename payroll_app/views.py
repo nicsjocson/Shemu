@@ -100,6 +100,14 @@ def update_employee(request, pk):
         if not id_number.isdigit():
             messages.error(request, 'ID Number must contain numbers only and must be positive.')
             return render(request, 'payroll_app/update_employee.html', {'employee': employee})
+        
+        if id_number != employee.id_number:
+            if Employee.objects.filter(id_number=id_number).exists():
+                messages.error(request, 'An employee with this ID number already exists.')
+                return render(request, 'payroll_app/update_employee.html', {'employee': employee})
+            if employee.payslip_set.exists():
+                messages.error(request, 'Cannot change ID Number because this employee already has payslips.')
+                return render(request, 'payroll_app/update_employee.html', {'employee': employee})
         employee.id_number = id_number
 
         rate_input = float(request.POST.get('rate'))
