@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Shemu Payroll</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fff0f3;
+        }
+        .card-table {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(255, 150, 170, 0.15);
+        }
+        h2 {
+            color: #6b2737;
+            font-weight: 700;
+        }
+        .btn-login {
+            background-color: #ff6b8a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .btn-login:hover {
+            background-color: #e05575;
+            color: white;
+        }
+        .form-control:focus {
+            border-color: #ff6b8a;
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 138, 0.25);
+        }
+    </style>
+</head>
+<body class="d-flex align-items-center justify-content-center min-vh-100">
+    <div class="col-md-4">
+        <div class="card-table">
+            <h2 class="text-center mb-4">Shemu Payroll</h2>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Username</label>
+                    <input type="text" name="username" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Password</label>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-login w-100">Login</button>
+            </form>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
